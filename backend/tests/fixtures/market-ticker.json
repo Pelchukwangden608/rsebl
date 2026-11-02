@@ -1,0 +1,19 @@
+[
+ {"symbol":"BBPL","currentPrice":11.2,"price":-0.29,"percentageChange":-2.5239338555265447},
+ {"symbol":"BCCL","currentPrice":130.71,"price":-13.29,"percentageChange":-9.229166666666666},
+ {"symbol":"BFAL","currentPrice":98.09,"price":-6.75,"percentageChange":-6.43838229683327},
+ {"symbol":"BIL","currentPrice":54.52,"price":0.52,"percentageChange":0.962962962962963},
+ {"symbol":"BNBL","currentPrice":23.9,"price":0.31,"percentageChange":1.314116150911403},
+ {"symbol":"BPCL","currentPrice":36,"price":0,"percentageChange":0},
+ {"symbol":"BTCL","currentPrice":550,"price":0,"percentageChange":0},
+ {"symbol":"DFAL","currentPrice":63.2,"price":0,"percentageChange":0},
+ {"symbol":"DPL","currentPrice":9.5,"price":0,"percentageChange":0},
+ {"symbol":"DPNB","currentPrice":24.91,"price":0.03,"percentageChange":0.12057877813504825},
+ {"symbol":"DWAL","currentPrice":114,"price":-15.39,"percentageChange":-11.894273127753307},
+ {"symbol":"GICB","currentPrice":34.65,"price":0,"percentageChange":0},
+ {"symbol":"KCL","currentPrice":25.5,"price":0,"percentageChange":0},
+ {"symbol":"PCAL","currentPrice":24.24,"price":2.24,"percentageChange":10.181818181818182},
+ {"symbol":"RICB","currentPrice":67,"price":0,"percentageChange":0},
+ {"symbol":"STCB","currentPrice":39,"price":0.58,"percentageChange":1.5096304008328993},
+ {"symbol":"TBL","currentPrice":27.03,"price":0.03,"percentageChange":0.1111111111111111}
+]

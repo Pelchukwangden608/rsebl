@@ -1,0 +1,87 @@
+[
+ {
+  "symbol": "BBPL",
+  "name": "Bhutan Board Products Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "BCCL",
+  "name": "Bhutan Carbide & Chemicals Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "BFAL",
+  "name": "Bhutan Ferro Alloys Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "BIL",
+  "name": "Bhutan Insurance Ltd.",
+  "sector": "Insurance"
+ },
+ {
+  "symbol": "BNBL",
+  "name": "Bhutan National Bank Ltd.",
+  "sector": "Banking"
+ },
+ {
+  "symbol": "BPCL",
+  "name": "Bhutan Polymers Company Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "BTCL",
+  "name": "Bhutan Tourism Corporation Ltd.",
+  "sector": "Tourism"
+ },
+ {
+  "symbol": "DFAL",
+  "name": "Druk Ferro Alloys Limited",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "DPL",
+  "name": "Dungsam Polymers Limited",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "DPNB",
+  "name": "Druk PNB Bank Ltd.",
+  "sector": "Banking"
+ },
+ {
+  "symbol": "DWAL",
+  "name": "Druk Wang Alloys Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "GICB",
+  "name": "GIC Bhutan Reinsurance Co. Ltd.",
+  "sector": "Insurance"
+ },
+ {
+  "symbol": "KCL",
+  "name": "Kuensel Corporation Ltd.",
+  "sector": "Publishing"
+ },
+ {
+  "symbol": "PCAL",
+  "name": "Penden Cement Authority Ltd.",
+  "sector": "Manufacturing"
+ },
+ {
+  "symbol": "RICB",
+  "name": "Royal Insurance Corporation of Bhutan Ltd.",
+  "sector": "Insurance"
+ },
+ {
+  "symbol": "TBL",
+  "name": "T Bank Ltd.",
+  "sector": "Banking"
+ },
+ {
+  "symbol": "STCB",
+  "name": "STATE TRADING CORPORATION OF BHUTAN LTD.",
+  "sector": "Other"
+ }
+]
