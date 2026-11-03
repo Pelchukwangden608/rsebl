@@ -33,3 +33,12 @@ def test_hosted_classifier_rejects_bad_shape(monkeypatch):
 def test_to_signed_labels():
     assert app.to_signed({"label": "negative", "score": 0.8}) == {"label": "negative", "score": -0.8, "confidence": 0.8}
     assert app.to_signed({"label": "neutral", "score": 0.6})["label"] == "neutral"
+
+
+def test_hosted_classifier_single_flat_response(monkeypatch):
+    monkeypatch.setattr(app, "HF_TOKEN", "test")
+    flat = [{"label": "negative", "score": 0.7}, {"label": "neutral", "score": 0.3}]
+    client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, json=flat)))
+    out = app.hf_classify(["one headline"], client=client)
+    assert out[0][0]["label"] == "negative"
+    assert app.to_signed(out[0][0])["score"] == -0.7

@@ -59,6 +59,9 @@ def hf_classify(texts, client=None, batch_size=16):
             res = http.post(url, headers=headers, json={"inputs": chunk, "options": {"wait_for_model": True}})
             res.raise_for_status()
             data = res.json()
+            # One input may come back as a flat list of label scores rather than a list per input.
+            if len(chunk) == 1 and isinstance(data, list) and data and isinstance(data[0], dict):
+                data = [data]
             if not isinstance(data, list) or len(data) != len(chunk):
                 raise ValueError("Hugging Face returned an unexpected response")
             out.extend(item if isinstance(item, list) else [item] for item in data)
