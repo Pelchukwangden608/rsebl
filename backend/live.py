@@ -99,6 +99,27 @@ def normalise_bsi(data) -> dict:
     return {"index": _num(first.get("index")), "change": _num(first.get("ptChange"))}
 
 
+def check_consistency(stocks, movers) -> list[dict]:
+    """Compares prices in the movers lists with the ticker, which is treated as the source of truth.
+
+    RSEB sometimes sends two different prices for the same company on different endpoints.
+    Each mismatch is returned as a flag so the dashboard and the API can show it, instead of hiding it.
+    """
+    if not stocks or not movers:
+        return []
+    ticker = {s["symbol"]: s["price"] for s in stocks}
+    flags, seen = [], set()
+    for group in ("risers", "fallers", "volumeLeaders"):
+        for row in movers.get(group) or []:
+            symbol, price = row.get("symbol"), row.get("price")
+            if symbol not in ticker or price is None or (symbol, group) in seen:
+                continue
+            seen.add((symbol, group))
+            if abs(price - ticker[symbol]) > 0.005:
+                flags.append({"symbol": symbol, "ticker": ticker[symbol], "movers": price, "list": group})
+    return flags
+
+
 async def fetch_market(client: httpx.AsyncClient | None = None) -> dict:
     """Fetches all four RSEB endpoints. Each one can fail on its own without stopping the others."""
     own = client is None
@@ -142,6 +163,7 @@ async def fetch_market(client: httpx.AsyncClient | None = None) -> dict:
         "fetchedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source": RSEBL_BASE,
         "errors": errors,
+        "flags": check_consistency(parsed.get("stocks"), parsed.get("movers")),
         **parsed,
     }
 

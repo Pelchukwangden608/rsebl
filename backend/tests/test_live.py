@@ -90,3 +90,23 @@ async def test_serves_stale_cache_when_upstream_down(monkeypatch):
     monkeypatch.setattr(live, "fetch_market", down)
     out = await live.live_market()
     assert out["stale"] is True and out["stocks"][0]["price"] == 1 and out["errors"] == {"ticker": "down"}
+
+
+@pytest.mark.asyncio
+async def test_consistency_flags_mismatched_prices():
+    out = await run()
+    assert isinstance(out["flags"], list)
+    # Every flag names a company, and the ticker price stays the reported one.
+    for f in out["flags"]:
+        stock = next(s for s in out["stocks"] if s["symbol"] == f["symbol"])
+        assert stock["price"] == f["ticker"]
+        assert f["movers"] != f["ticker"]
+
+
+def test_check_consistency_reports_only_real_mismatches():
+    stocks = [{"symbol": "AAA", "price": 10.0}, {"symbol": "BBB", "price": 5.0}]
+    movers = {"risers": [{"symbol": "AAA", "price": 10.0}], "fallers": [{"symbol": "BBB", "price": 5.5}],
+              "volumeLeaders": [{"symbol": "ZZZ", "price": 1.0}]}
+    flags = live.check_consistency(stocks, movers)
+    assert flags == [{"symbol": "BBB", "ticker": 5.0, "movers": 5.5, "list": "fallers"}]
+    assert live.check_consistency(None, movers) == []

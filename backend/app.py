@@ -38,15 +38,51 @@ state = {"status": "loading", "error": None, "classifier": None}
 state_lock = threading.Lock()
 
 
-def load_model():
-    """Loads FinBERT once. Runs in a background thread so the server starts immediately."""
-    try:
-        from transformers import pipeline  # imported here so the server starts even if torch is missing
+HF_TOKEN = os.environ.get("HF_TOKEN", "").strip()
+HF_API_URL = os.environ.get("HF_API_URL", "https://router.huggingface.co/hf-inference/models").rstrip("/")
 
-        clf = pipeline("text-classification", model=MODEL_ID)
+
+def hf_classify(texts, client=None, batch_size=16):
+    """Runs FinBERT on Hugging Face's hosted inference API, so this server needs no PyTorch.
+
+    Returns one list of {label, score} dicts per text, the same shape the local pipeline gives.
+    """
+    import httpx
+
+    url = f"{HF_API_URL}/{MODEL_ID}"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    http = client or httpx.Client(timeout=30)
+    out = []
+    try:
+        for i in range(0, len(texts), batch_size):
+            chunk = texts[i:i + batch_size]
+            res = http.post(url, headers=headers, json={"inputs": chunk, "options": {"wait_for_model": True}})
+            res.raise_for_status()
+            data = res.json()
+            if not isinstance(data, list) or len(data) != len(chunk):
+                raise ValueError("Hugging Face returned an unexpected response")
+            out.extend(item if isinstance(item, list) else [item] for item in data)
+    finally:
+        if client is None:
+            http.close()
+    return out
+
+
+def load_model():
+    """Loads FinBERT once. Runs in a background thread so the server starts immediately.
+
+    With HF_TOKEN set, the hosted Hugging Face API is used instead of a local model.
+    """
+    try:
+        if HF_TOKEN:
+            clf = hf_classify
+        else:
+            from transformers import pipeline  # imported here so the server starts even if torch is missing
+
+            clf = pipeline("text-classification", model=MODEL_ID)
         with state_lock:
             state.update(status="ready", classifier=clf, error=None)
-        print(f"[sentiment] FinBERT loaded: {MODEL_ID}")
+        print(f"[sentiment] FinBERT loaded: {MODEL_ID} ({'hosted' if HF_TOKEN else 'local'})")
     except Exception as exc:  # noqa: BLE001 - report any load problem to the dashboard
         with state_lock:
             state.update(status="unavailable", error=str(exc))
@@ -104,5 +140,11 @@ def score(req: ScoreRequest):
         raise HTTPException(status_code=503, detail=f"The FinBERT model is unavailable: {error}")
     if not req.texts:
         return {"results": []}
-    raw = clf(req.texts, truncation=True, batch_size=16)
-    return {"results": [to_signed(r[0] if isinstance(r, list) else r) for r in raw]}
+    if clf is hf_classify:
+        try:
+            raw = hf_classify(req.texts)
+        except Exception as exc:  # noqa: BLE001 - report hosted API problems to the dashboard
+            raise HTTPException(status_code=503, detail=f"The hosted FinBERT service failed: {exc}")
+    else:
+        raw = clf(req.texts, truncation=True, batch_size=16)
+    return {"results": [to_signed(r[0] if isinstance(r, list) and r else r) for r in raw]}
