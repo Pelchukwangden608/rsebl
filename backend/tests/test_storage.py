@@ -39,14 +39,15 @@ def test_history_is_seeded_from_rsebl_data(db):
     assert points[-1]["price"] == 23.9
 
 
-def test_live_price_updates_todays_close_but_not_seeded_days(db):
-    store.record_snapshot("BCCL", "2026-11-02T10:00:00+00:00", 27.0, 0.0, 0.0, "2026-11-02")
-    store.record_snapshot("BCCL", "2026-11-02T11:00:00+00:00", 27.5, 0.5, 1.8, "2026-11-02")
-    tbl = store.history("BCCL")
-    assert tbl == [{"date": "2026-11-02", "price": 27.5, "source": "live"}]
-    store.record_snapshot("BNBL", "2026-11-02T11:00:00+00:00", 99.0, 0, 0, "2026-11-02")
-    bnbl_today = [p for p in store.history("BNBL") if p["date"] == "2026-11-02"][0]
-    assert bnbl_today["price"] == 23.9  # the seeded close is not overwritten
+def test_live_price_fills_todays_close_only_without_seeded_history(db):
+    # A symbol with no seeded history gets today's live price as its close.
+    store.record_snapshot("ZZZZ", "2026-11-02T10:00:00+00:00", 27.0, 0.0, 0.0, "2026-11-02")
+    store.record_snapshot("ZZZZ", "2026-11-02T11:00:00+00:00", 27.5, 0.5, 1.8, "2026-11-02")
+    assert store.history("ZZZZ") == [{"date": "2026-11-02", "price": 27.5, "source": "live"}]
+    # A seeded company keeps its seeded close when a live price arrives.
+    store.record_snapshot("BCCL", "2026-11-02T11:00:00+00:00", 99.0, 0, 0, "2026-11-02")
+    bccl_today = [p for p in store.history("BCCL") if p["date"] == "2026-11-02"][0]
+    assert bccl_today["price"] == 130.71
 
 
 def test_news_is_saved_once_and_filtered(db):
@@ -72,7 +73,7 @@ def test_history_and_news_endpoints(db):
 
 def test_every_seeded_company_has_full_history(db):
     seeded = sorted(p.stem for p in store.SEED_DIR.glob("*.json") if p.name != "companies.json")
-    assert len(seeded) == 13
+    assert len(seeded) == 17
     for symbol in seeded:
         points = store.history(symbol)
         assert len(points) >= 1600, symbol
