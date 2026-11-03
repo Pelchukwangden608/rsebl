@@ -42,3 +42,11 @@ def test_hosted_classifier_single_flat_response(monkeypatch):
     out = app.hf_classify(["one headline"], client=client)
     assert out[0][0]["label"] == "negative"
     assert app.to_signed(out[0][0])["score"] == -0.7
+
+
+def test_hosted_problem_explains_billing_and_token_errors():
+    assert app.hosted_problem(Exception("Client error '402 Payment Required'")).persistent
+    assert "paid plan" in app.hosted_problem(Exception("402 Payment Required")).message
+    assert "token" in app.hosted_problem(Exception("401 Unauthorized")).message
+    other = app.hosted_problem(Exception("timed out"))
+    assert not other.persistent and "timed out" in other.message

@@ -58,11 +58,13 @@ export function SentimentProvider({ children, liveNews = [] }) {
         }
       } catch (err) {
         if (!cancelled) {
-          setLoader({
-            status: 'offline',
-            error: 'The FinBERT service is not reachable. Start it as described in the README, then select Retry.',
-            progress: 0,
-          });
+          // A network failure is a TypeError; anything else is a reason the service gave us.
+          const fromServer = err && !(err instanceof TypeError) && err.message;
+          setLoader(
+            fromServer
+              ? { status: 'unavailable', error: err.message, progress: 0 }
+              : { status: 'offline', error: 'The FinBERT service is not reachable. Check that it is running, then select Retry.', progress: 0 },
+          );
         }
       }
     })();

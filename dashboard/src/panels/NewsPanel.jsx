@@ -145,7 +145,7 @@ export default function NewsPanel({ symbol }) {
               <input type="radio" name="engine" value="finbert" checked={engine === 'finbert'} onChange={() => setEngine('finbert')} />
               <span>
                 <strong>FinBERT</strong>
-                <span className="muted small">A neural network pretrained on financial text ({MODEL_ID}). Runs on the local Python service.</span>
+                <span className="muted small">A neural network pretrained on financial text ({MODEL_ID}). Runs on the FinBERT service. A hosted FinBERT needs a paid Hugging Face plan, so the word list is the default.</span>
               </span>
             </label>
           </div>

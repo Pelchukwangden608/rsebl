@@ -71,6 +71,21 @@ def hf_classify(texts, client=None, batch_size=16):
     return out
 
 
+class HostedProblem:
+    def __init__(self, message: str, persistent: bool):
+        self.message, self.persistent = message, persistent
+
+
+def hosted_problem(exc: Exception) -> HostedProblem:
+    """Turns a Hugging Face error into a plain message. Billing and token errors are persistent."""
+    text = str(exc)
+    if "402" in text:
+        return HostedProblem("Hosted FinBERT is unavailable: the Hugging Face account needs a paid plan or more credits.", True)
+    if "401" in text or "403" in text:
+        return HostedProblem("Hosted FinBERT is unavailable: the Hugging Face token was rejected. Check HF_TOKEN.", True)
+    return HostedProblem(f"Hosted FinBERT request failed: {text}", False)
+
+
 def load_model():
     """Loads FinBERT once. Runs in a background thread so the server starts immediately.
 
@@ -147,7 +162,12 @@ def score(req: ScoreRequest):
         try:
             raw = hf_classify(req.texts)
         except Exception as exc:  # noqa: BLE001 - report hosted API problems to the dashboard
-            raise HTTPException(status_code=503, detail=f"The hosted FinBERT service failed: {exc}")
+            reason = hosted_problem(exc)
+            if reason.persistent:
+                # Billing or token problems will not fix themselves, so /health reports them too.
+                with state_lock:
+                    state.update(status="unavailable", error=reason.message)
+            raise HTTPException(status_code=503, detail=reason.message)
     else:
         raw = clf(req.texts, truncation=True, batch_size=16)
     return {"results": [to_signed(r[0] if isinstance(r, list) and r else r) for r in raw]}
